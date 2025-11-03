@@ -1,5 +1,5 @@
 import {EnvironmentProviders, makeEnvironmentProviders} from "@angular/core";
-import {LaravelEchoConfig, NGX_LARAVEL_ECHO_CONFIG} from "./laravel-echo-config";
+import {NGX_LARAVEL_ECHO_CONFIG} from "./laravel-echo-config";
 import {LaravelEcho} from "./laravel-echo";
 import {Broadcaster, EchoOptions} from "laravel-echo";
 
