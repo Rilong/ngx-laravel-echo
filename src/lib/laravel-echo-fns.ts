@@ -16,17 +16,17 @@ const echo = <TPayload>(channelName: string, eventName: string, callback: (data:
   } else {
     channels[visibility].listen(eventName, callback);
   }
-  return { stopListening: () => channels[visibility].stopListening(eventName) };
+  return { stopListening: () => { channels[visibility].stopListening(eventName) } };
 }
 
-const laravelEcho = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
+export const laravelEcho = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
   return echo(channelName, eventName, callback, 'public');
 }
 
-const laravelEchoPrivate = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
+export const laravelEchoPrivate = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
   return echo(channelName, eventName, callback, 'private');
 }
 
-const laravelEchoPresence = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
+export const laravelEchoPresence = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
   return echo(channelName, eventName, callback, 'presence');
 }

@@ -4,3 +4,4 @@
 
 export * from './lib/provide-laravel-echo';
 export * from './lib/laravel-echo'
+export * from './lib/laravel-echo-fns'
