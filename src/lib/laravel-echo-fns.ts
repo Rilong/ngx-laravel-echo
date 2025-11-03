@@ -1,6 +1,5 @@
 import {inject} from "@angular/core";
 import {LaravelEcho} from "./laravel-echo";
-import {Broadcaster, BroadcastDriver} from "laravel-echo";
 
 type Visibility = 'public' | 'private' | 'presence';
 
