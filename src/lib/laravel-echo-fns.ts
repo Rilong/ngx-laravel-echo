@@ -4,11 +4,11 @@ import {LaravelEcho} from "./laravel-echo";
 type Visibility = 'public' | 'private' | 'presence';
 
 const echo = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void, visibility: Visibility = 'public') => {
-  const echo = inject(LaravelEcho).getEcho();
+  const echoService = inject(LaravelEcho).getEcho();
   const channels = {
-    public: echo.channel(channelName),
-    private: echo.private(channelName),
-    presence: echo.join(channelName),
+    public: echoService.channel(channelName),
+    private: echoService.private(channelName),
+    presence: echoService.join(channelName),
   };
 
   if (visibility === 'presence') {
