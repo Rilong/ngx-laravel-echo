@@ -1,14 +1,27 @@
-import {inject} from "@angular/core";
+import {DestroyRef, inject, Injector} from "@angular/core";
 import {LaravelEcho} from "./laravel-echo";
 
 type Visibility = 'public' | 'private' | 'presence';
 
-const echo = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void, visibility: Visibility = 'public') => {
-  const echoService = inject(LaravelEcho).getEcho();
+interface EchoOptions {
+  injector?: Injector;
+  manualCleanup?: boolean;
+}
+
+interface ChannelData {
+  channel: string;
+  eventName: string;
+  visibility: Visibility;
+}
+
+const listenChannel = (channelData: ChannelData, callback: (data: any) => void, injector: Injector) => {
+  const { channel, eventName, visibility } = channelData;
+  const echoInstance = injector.get(LaravelEcho).getEcho();
+
   const channels = {
-    public: echoService.channel(channelName),
-    private: echoService.private(channelName),
-    presence: echoService.join(channelName),
+    public: echoInstance.channel(channel),
+    private: echoInstance.private(channel),
+    presence: echoInstance.join(channel),
   };
 
   if (visibility === 'presence') {
@@ -16,17 +29,31 @@ const echo = <TPayload>(channelName: string, eventName: string, callback: (data:
   } else {
     channels[visibility].listen(eventName, callback);
   }
+
   return { stopListening: () => { channels[visibility].stopListening(eventName) } };
 }
 
-export const laravelEcho = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
-  return echo(channelName, eventName, callback, 'public');
+const echo = <TPayload>(channelData: ChannelData, callback: (data: TPayload) => void, options?: EchoOptions) => {
+  const injector = options?.injector ?? inject(Injector);
+  const destroyRef = injector.get(DestroyRef);
+
+  const { stopListening } = listenChannel(channelData, callback, injector);
+
+  if(!options?.manualCleanup) {
+    destroyRef.onDestroy(stopListening);
+  }
+
+  return { stopListening };
 }
 
-export const laravelEchoPrivate = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
-  return echo(channelName, eventName, callback, 'private');
+export const laravelEcho = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void, options?: EchoOptions) => {
+  return echo({ channel: channelName, eventName, visibility: 'public' }, callback, options);
 }
 
-export const laravelEchoPresence = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void) => {
-  return echo(channelName, eventName, callback, 'presence');
+export const laravelEchoPrivate = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void, options?: EchoOptions) => {
+  return echo({ channel: channelName, eventName, visibility: 'private' }, callback, options);
+}
+
+export const laravelEchoPresence = <TPayload>(channelName: string, eventName: string, callback: (data: TPayload) => void, options?: EchoOptions) => {
+  return echo({ channel: channelName, eventName, visibility: 'presence' }, callback, options);
 }
