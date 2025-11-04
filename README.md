@@ -1,5 +1,7 @@
 # ngx-laravel-echo
 
+> ⚠️ **Work In Progress (WIP)** - This is a very raw version. The API and documentation are subject to significant changes. Please use with caution in production environments.
+
 A modern Angular wrapper for [Laravel Echo](https://laravel.com/docs/broadcasting) that enables real-time event broadcasting in your Angular applications. Built with **Angular 20**, **TypeScript**, and full support for multiple broadcast drivers.
 
 ## 🚀 Features
