@@ -1,23 +1,27 @@
-# NgxLaravelEcho
+# ngx-laravel-echo
 
-A modern Angular wrapper for [Laravel Echo](https://laravel.com/docs/broadcasting) that supports multiple broadcast drivers (Pusher, Ably, Socket.io, and more).
+A modern Angular wrapper for [Laravel Echo](https://laravel.com/docs/broadcasting) that enables real-time event broadcasting in your Angular applications. Built with **Angular 20**, **TypeScript**, and full support for multiple broadcast drivers.
 
-## Installation
+## 🚀 Features
+
+- ✨ **Modern Angular API** - Standalone providers with full dependency injection support
+- 🔐 **Multi-Driver Support** - Pusher, Ably, Socket.io, and Laravel Reverb
+- 📦 **Type-Safe** - Complete TypeScript support with generics for type-safe event payloads
+- 🎯 **Channel Types** - Public, private, and presence channels with dedicated helpers
+- 🔄 **Easy Integration** - Simple setup with `provideLaravelEcho()`
+- ⚙️ **Flexible** - Switch broadcast drivers with just a configuration change
+
+## 📦 Installation
 
 ```bash
 npm install ngx-laravel-echo laravel-echo
 ```
 
-### Install Driver Dependencies
+Choose your broadcast driver:
 
 **For Pusher:**
 ```bash
 npm install pusher-js
-```
-
-**For Ably:**
-```bash
-npm install ably
 ```
 
 **For Socket.io:**
@@ -25,11 +29,16 @@ npm install ably
 npm install socket.io-client
 ```
 
-## Setup
+**For Ably:**
+```bash
+npm install ably
+```
 
-### 1. Configure in Your App
+## 🎯 Quick Start
 
-Import and provide the Echo service in your Angular app configuration:
+### 1. Setup in your Angular Application
+
+In your `main.ts`:
 
 ```typescript
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -48,31 +57,94 @@ bootstrapApplication(AppComponent, {
 });
 ```
 
-### 2. Inject and Use in Components
+### 2. Use Helper Functions in Components
 
 ```typescript
 import { Component } from '@angular/core';
-import { LaravelEcho } from 'ngx-laravel-echo';
+import { laravelEcho } from 'ngx-laravel-echo';
 
 @Component({
-  selector: 'app-chat',
-  template: `<div>{{ message }}</div>`,
+  selector: 'app-messages',
+  template: `
+    <div *ngFor="let msg of messages">{{ msg.text }}</div>
+  `,
 })
-export class ChatComponent {
-  message: string = '';
+export class MessagesComponent {
+  messages: any[] = [];
 
-  constructor(private echo: LaravelEcho) {
-    // Listen to public channel
-    this.echo.channel('chat').listen('MessageSent', (data) => {
-      this.message = data.message;
+  constructor() {
+    laravelEcho<{ text: string }>('messages', 'MessageSent', (data) => {
+      this.messages.push(data.text);
     });
   }
 }
 ```
 
-## Supported Broadcast Drivers
+## 🛠️ Usage Examples
 
-### Pusher
+### Using Public Channels
+
+Public channels are available to all users:
+
+```typescript
+import { Component } from '@angular/core';
+import { laravelEcho } from 'ngx-laravel-echo';
+
+@Component({
+  selector: 'app-public-chat',
+})
+export class PublicChatComponent {
+  constructor() {
+    laravelEcho<{ message: string }>('public.chat', 'MessagePosted', (data) => {
+      console.log('Message:', data.message);
+    });
+  }
+}
+```
+
+### Using Private Channels
+
+Private channels restrict access to authenticated users:
+
+```typescript
+import { Component } from '@angular/core';
+import { laravelEchoPrivate } from 'ngx-laravel-echo';
+
+@Component({
+  selector: 'app-notifications',
+})
+export class NotificationsComponent {
+  constructor() {
+    laravelEchoPrivate<{ notification: string }>('user.notifications', 'NotificationSent', (data) => {
+      console.log('Notification:', data.notification);
+    });
+  }
+}
+```
+
+### Using Presence Channels
+
+Track online users in real-time:
+
+```typescript
+import { Component } from '@angular/core';
+import { laravelEchoPresence } from 'ngx-laravel-echo';
+
+@Component({
+  selector: 'app-presence',
+})
+export class PresenceComponent {
+  constructor() {
+    laravelEchoPresence<{ users: User[] }>('room.1', 'UserPresence', (data) => {
+      console.log('Presence update:', data.users);
+    });
+  }
+}
+```
+
+## ⚙️ Configuration
+
+### Pusher Configuration
 
 ```typescript
 provideLaravelEcho({
@@ -80,225 +152,121 @@ provideLaravelEcho({
   key: 'your-pusher-key',
   cluster: 'mt1',
   encrypted: true,
-  forceTLS: true,
-  // Optional: Custom host/port
-  // host: 'example.com',
-  // port: 6001,
-  // scheme: 'https',
+  wsHost: 'ws.pusher.com',
+  wsPort: 443,
+  wssPort: 443,
+  disableStats: true,
 })
 ```
 
-### Ably
-
-```typescript
-provideLaravelEcho({
-  broadcaster: 'ably',
-  key: 'your-ably-key',
-  token: 'your-ably-token', // Alternative to key
-  // Optional: Custom options
-  // plugins: {
-  //   RealtimePresence: require('ably/realtime').Realtime.Plugins.RealtimePresence
-  // }
-})
-```
-
-### Socket.io
+### Socket.io Configuration
 
 ```typescript
 provideLaravelEcho({
   broadcaster: 'socket.io',
   host: 'http://localhost:6001',
-  // Optional: Socket.io options
-  // reconnection: true,
-  // reconnection_delay: 100,
-  // reconnection_delay_max: 500,
+  rejectUnauthorized: false, // For development only
 })
 ```
 
-### ReverseProxy (for self-hosted solutions)
+### Ably Configuration
 
 ```typescript
 provideLaravelEcho({
-  broadcaster: 'reverseproxy',
-  host: 'http://localhost:8000',
-  // Optional: Custom path
-  // path: '/socket.io'
+  broadcaster: 'ably',
+  key: 'your-ably-api-key',
 })
 ```
 
-## Channel Types
+### Using Environment-Based Configuration
 
-### Public Channel
+Create separate configurations for different environments:
 
-Listen to events from any user:
-
+**environment.ts (Development):**
 ```typescript
-this.echo.channel('chat').listen('MessageSent', (data) => {
-  console.log('Message received:', data);
-});
+export const environment = {
+  production: false,
+  broadcast: {
+    broadcaster: 'socket.io',
+    host: 'http://localhost:6001',
+  },
+};
 ```
 
-### Private Channel
-
-Listen to events only for the authenticated user:
-
+**environment.prod.ts (Production):**
 ```typescript
-this.echo.privateChannel('private-user.1').listen('NotificationSent', (data) => {
-  console.log('Notification received:', data);
-});
+export const environment = {
+  production: true,
+  broadcast: {
+    broadcaster: 'pusher',
+    key: 'your-pusher-key',
+    cluster: 'mt1',
+    encrypted: true,
+  },
+};
 ```
 
-### Presence Channel
-
-Track online users and their presence:
-
-```typescript
-const presence = this.echo.presenceChannel('presence-room');
-
-// User joined
-presence.here((users) => {
-  console.log('Users online:', users);
-});
-
-// User joined (new)
-presence.joining((user) => {
-  console.log('User joined:', user);
-});
-
-// User left
-presence.leaving((user) => {
-  console.log('User left:', user);
-});
-
-// Listen for events
-presence.listen('UserAction', (data) => {
-  console.log('User action:', data);
-});
-```
-
-## API Reference
-
-### `LaravelEcho` Service
-
-#### Methods
-
-- **`channel(name: string)`**: Subscribe to a public channel
-- **`privateChannel(name: string)`**: Subscribe to a private channel
-- **`presenceChannel(name: string)`**: Subscribe to a presence channel
-
-## Environment Variables
-
-For security, use environment variables for sensitive configuration:
-
+**main.ts:**
 ```typescript
 import { environment } from './environments/environment';
 import { provideLaravelEcho } from 'ngx-laravel-echo';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideLaravelEcho({
-      broadcaster: environment.echo.broadcaster,
-      key: environment.echo.key,
-      cluster: environment.echo.cluster,
-    }),
+    provideLaravelEcho(environment.broadcast),
   ],
 });
 ```
 
-**environment.ts:**
-```typescript
-export const environment = {
-  production: false,
-  echo: {
-    broadcaster: 'pusher',
-    key: 'your-pusher-key',
-    cluster: 'mt1',
-  },
-};
-```
+## 📚 Core API Reference
 
-## Complete Example
+### Helper Functions
+
+#### `laravelEcho<T>()`
+
+Listen to public channel events:
 
 ```typescript
-import { Component, OnInit } from '@angular/core';
-import { LaravelEcho } from 'ngx-laravel-echo';
+const { stopListening } = laravelEcho<MessagePayload>(
+  'channel-name',
+  'EventName',
+  (data) => { /* handle event */ }
+);
 
-@Component({
-  selector: 'app-notifications',
-  template: `
-    <div class="notifications">
-      <div *ngFor="let notification of notifications">
-        {{ notification.message }}
-      </div>
-    </div>
-  `,
-  styles: [`
-    .notifications {
-      padding: 20px;
-      background: #f5f5f5;
-    }
-  `],
-})
-export class NotificationsComponent implements OnInit {
-  notifications: any[] = [];
-
-  constructor(private echo: LaravelEcho) {}
-
-  ngOnInit() {
-    // Listen to private channel
-    this.echo.privateChannel(`notifications.${this.userId}`)
-      .listen('NotificationSent', (event) => {
-        this.notifications.push(event.data);
-      });
-
-    // Listen to presence channel
-    this.echo.presenceChannel('team-room')
-      .listen('UserStatusChanged', (event) => {
-        console.log('User status changed:', event);
-      });
-  }
-
-  get userId(): number {
-    // Get from auth service
-    return 1;
-  }
-}
+// Stop listening
+stopListening();
 ```
 
-## Troubleshooting
+#### `laravelEchoPrivate<T>()`
 
-### Connection Issues
+Listen to private channel events:
 
-1. **Verify broadcaster credentials** in your configuration
-2. **Check CORS settings** if using a remote broadcaster
-3. **Ensure authenticator is configured** for private/presence channels
-4. **Check browser console** for specific error messages
-
-### Common Issues
-
-- **"Broadcaster not found"**: Install the required driver package
-- **"Connection refused"**: Check broadcaster host and port
-- **"Unauthorized"**: Verify authentication for private channels
-
-## Building
-
-```bash
-ng build ngx-laravel-echo
+```typescript
+const { stopListening } = laravelEchoPrivate<NotificationPayload>(
+  'user.notifications',
+  'NotificationSent',
+  (data) => { /* handle event */ }
+);
 ```
 
-Build artifacts will be placed in the `dist/` directory.
+#### `laravelEchoPresence<T>()`
 
-### Publishing
+Listen to presence channel events:
 
-```bash
-cd dist/ngx-laravel-echo
-npm publish
+```typescript
+const { stopListening } = laravelEchoPresence<UserPayload>(
+  'room.1',
+  'UserJoined',
+  (data) => { /* handle event */ }
+);
 ```
 
-## Additional Resources
 
-- [Laravel Echo Documentation](https://laravel.com/docs/broadcasting)
-- [Laravel Broadcasting](https://laravel.com/docs/broadcasting)
-- [Pusher Documentation](https://pusher.com/docs)
-- [Ably Documentation](https://ably.com/docs)
-- [Socket.io Documentation](https://socket.io/docs)
+## 🌐 Supported Broadcast Drivers
+
+| Driver | Package | Best For |
+|--------|---------|----------|
+| **Pusher** | `pusher-js` | Production, cloud-hosted, global reach |
+| **Ably** | `ably` | High-availability, global edge network |
+| **Socket.io** | `socket.io-client` | Self-hosted, full control |
+| **Laravel Reverb** | `pusher-js` | Laravel Reverb (uses Pusher protocol) |
