@@ -32,18 +32,18 @@ export class LaravelEcho {
     const {channel, eventName, visibility} = channelData;
 
     const channels = {
-      public: this.echo.channel(channel),
-      private: this.echo.private(channel),
-      presence: this.echo.join(channel),
+      public: () => this.echo.channel(channel),
+      private: () => this.echo.private(channel),
+      presence: () => this.echo.join(channel),
     };
 
     if (visibility === 'presence') {
-      channels[visibility].whisper(eventName, callback);
+      channels[visibility]().whisper(eventName, callback);
     } else {
-      channels[visibility].listen(eventName, callback);
+      channels[visibility]().listen(eventName, callback);
     }
 
-    return {stopListening: () => {channels[visibility].stopListening(eventName)}};
+    return {stopListening: () => {channels[visibility]().stopListening(eventName)}};
   }
 
 }
