@@ -1,274 +1,59 @@
-# ngx-laravel-echo
+# AngularLaravelEcho
 
-> ⚠️ **Work In Progress (WIP)** - This is a very raw version. The API and documentation are subject to significant changes. Please use with caution in production environments.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.8.
 
-A modern Angular wrapper for [Laravel Echo](https://laravel.com/docs/broadcasting) that enables real-time event broadcasting in your Angular applications. Built with **Angular 20**, **TypeScript**, and full support for multiple broadcast drivers.
+## Development server
 
-## 🚀 Features
-
-- ✨ **Modern Angular API** - Standalone providers with full dependency injection support
-- 🔐 **Multi-Driver Support** - Pusher, Ably, Socket.io, and Laravel Reverb
-- 📦 **Type-Safe** - Complete TypeScript support with generics for type-safe event payloads
-- 🎯 **Channel Types** - Public, private, and presence channels with dedicated helpers
-- 🔄 **Easy Integration** - Simple setup with `provideLaravelEcho()`
-- ⚙️ **Flexible** - Switch broadcast drivers with just a configuration change
-
-## 📦 Installation
+To start a local development server, run:
 
 ```bash
-npm install ngx-laravel-echo laravel-echo
+ng serve
 ```
 
-Choose your broadcast driver:
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-**For Pusher:**
+## Code scaffolding
+
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+
 ```bash
-npm install pusher-js
+ng generate component component-name
 ```
 
-**For Socket.io:**
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+
 ```bash
-npm install socket.io-client
+ng generate --help
 ```
 
-**For Ably:**
+## Building
+
+To build the project run:
+
 ```bash
-npm install ably
+ng build
 ```
 
-## 🎯 Quick Start
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
-### 1. Setup in your Angular Application
+## Running unit tests
 
-In your `main.ts`:
+To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
-```typescript
-import { bootstrapApplication } from '@angular/platform-browser';
-import { provideLaravelEcho } from 'ngx-laravel-echo';
-import { AppComponent } from './app.component';
-
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideLaravelEcho({
-      broadcaster: 'pusher',
-      key: 'your-pusher-key',
-      cluster: 'mt1',
-      encrypted: true,
-    }),
-  ],
-});
+```bash
+ng test
 ```
 
-### 2. Use Helper Functions in Components
+## Running end-to-end tests
 
-```typescript
-import { Component } from '@angular/core';
-import { laravelEcho } from 'ngx-laravel-echo';
+For end-to-end (e2e) testing, run:
 
-@Component({
-  selector: 'app-messages',
-  template: `
-    <div *ngFor="let msg of messages">{{ msg.text }}</div>
-  `,
-})
-export class MessagesComponent {
-  messages: any[] = [];
-
-  constructor() {
-    laravelEcho<{ text: string }>('messages', 'MessageSent', (data) => {
-      this.messages.push(data.text);
-    });
-  }
-}
+```bash
+ng e2e
 ```
 
-## 🛠️ Usage Examples
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
-### Using Public Channels
+## Additional Resources
 
-Public channels are available to all users:
-
-```typescript
-import { Component } from '@angular/core';
-import { laravelEcho } from 'ngx-laravel-echo';
-
-@Component({
-  selector: 'app-public-chat',
-})
-export class PublicChatComponent {
-  constructor() {
-    laravelEcho<{ message: string }>('public.chat', 'MessagePosted', (data) => {
-      console.log('Message:', data.message);
-    });
-  }
-}
-```
-
-### Using Private Channels
-
-Private channels restrict access to authenticated users:
-
-```typescript
-import { Component } from '@angular/core';
-import { laravelEchoPrivate } from 'ngx-laravel-echo';
-
-@Component({
-  selector: 'app-notifications',
-})
-export class NotificationsComponent {
-  constructor() {
-    laravelEchoPrivate<{ notification: string }>('user.notifications', 'NotificationSent', (data) => {
-      console.log('Notification:', data.notification);
-    });
-  }
-}
-```
-
-### Using Presence Channels
-
-Track online users in real-time:
-
-```typescript
-import { Component } from '@angular/core';
-import { laravelEchoPresence } from 'ngx-laravel-echo';
-
-@Component({
-  selector: 'app-presence',
-})
-export class PresenceComponent {
-  constructor() {
-    laravelEchoPresence<{ users: User[] }>('room.1', 'UserPresence', (data) => {
-      console.log('Presence update:', data.users);
-    });
-  }
-}
-```
-
-## ⚙️ Configuration
-
-### Pusher Configuration
-
-```typescript
-provideLaravelEcho({
-  broadcaster: 'pusher',
-  key: 'your-pusher-key',
-  cluster: 'mt1',
-  encrypted: true,
-  wsHost: 'ws.pusher.com',
-  wsPort: 443,
-  wssPort: 443,
-  disableStats: true,
-})
-```
-
-### Socket.io Configuration
-
-```typescript
-provideLaravelEcho({
-  broadcaster: 'socket.io',
-  host: 'http://localhost:6001',
-  rejectUnauthorized: false, // For development only
-})
-```
-
-### Ably Configuration
-
-```typescript
-provideLaravelEcho({
-  broadcaster: 'ably',
-  key: 'your-ably-api-key',
-})
-```
-
-### Using Environment-Based Configuration
-
-Create separate configurations for different environments:
-
-**environment.ts (Development):**
-```typescript
-export const environment = {
-  production: false,
-  broadcast: {
-    broadcaster: 'socket.io',
-    host: 'http://localhost:6001',
-  },
-};
-```
-
-**environment.prod.ts (Production):**
-```typescript
-export const environment = {
-  production: true,
-  broadcast: {
-    broadcaster: 'pusher',
-    key: 'your-pusher-key',
-    cluster: 'mt1',
-    encrypted: true,
-  },
-};
-```
-
-**main.ts:**
-```typescript
-import { environment } from './environments/environment';
-import { provideLaravelEcho } from 'ngx-laravel-echo';
-
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideLaravelEcho(environment.broadcast),
-  ],
-});
-```
-
-## 📚 Core API Reference
-
-### Helper Functions
-
-#### `laravelEcho<T>()`
-
-Listen to public channel events:
-
-```typescript
-const { stopListening } = laravelEcho<MessagePayload>(
-  'channel-name',
-  'EventName',
-  (data) => { /* handle event */ }
-);
-
-// Stop listening
-stopListening();
-```
-
-#### `laravelEchoPrivate<T>()`
-
-Listen to private channel events:
-
-```typescript
-const { stopListening } = laravelEchoPrivate<NotificationPayload>(
-  'user.notifications',
-  'NotificationSent',
-  (data) => { /* handle event */ }
-);
-```
-
-#### `laravelEchoPresence<T>()`
-
-Listen to presence channel events:
-
-```typescript
-const { stopListening } = laravelEchoPresence<UserPayload>(
-  'room.1',
-  'UserJoined',
-  (data) => { /* handle event */ }
-);
-```
-
-
-## 🌐 Supported Broadcast Drivers
-
-| Driver | Package | Best For |
-|--------|---------|----------|
-| **Pusher** | `pusher-js` | Production, cloud-hosted, global reach |
-| **Ably** | `ably` | High-availability, global edge network |
-| **Socket.io** | `socket.io-client` | Self-hosted, full control |
-| **Laravel Reverb** | `pusher-js` | Laravel Reverb (uses Pusher protocol) |
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

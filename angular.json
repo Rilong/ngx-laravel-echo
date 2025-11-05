@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "ngx-laravel-echo": {
+      "projectType": "library",
+      "root": "projects/ngx-laravel-echo",
+      "sourceRoot": "projects/ngx-laravel-echo/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-laravel-echo/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngx-laravel-echo/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/ngx-laravel-echo/tsconfig.spec.json"
+          }
+        }
+      }
+    }
+  }
+}
