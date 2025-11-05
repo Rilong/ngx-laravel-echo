@@ -1,16 +1,13 @@
 {
-  "name": "ngx-laravel-echo",
-  "version": "0.0.1",
+  "name": "@rilong/ngx-laravel-echo",
+  "version": "0.0.2",
   "peerDependencies": {
     "@angular/common": "^20.3.0",
-    "@angular/core": "^20.3.0"
+    "@angular/core": "^20.3.0",
+    "laravel-echo": "^2.2.4"
   },
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "sideEffects": false,
-  "devDependencies": {
-    "laravel-echo": "^2.2.4",
-    "pusher-js": "^8.4.0"
-  }
+  "sideEffects": false
 }
